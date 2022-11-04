@@ -56,7 +56,7 @@ const NFTDropPage = (props: Props) => {
               onClick={() => setShowModal(true)}
               className="rounded-xl bg-gradient-to-br from-blue-700 to-purple-600 text-white px-5 py-3 text-sm font-bold lg:px-6 lg:py-3 lg:text-base"
             >
-              Connect
+              Close
             </button>
           )}
         </header>
