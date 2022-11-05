@@ -2,10 +2,16 @@ import React, { useState } from 'react';
 
 import { useMetamask, useWalletConnect, useAddress, useDisconnect } from '@thirdweb-dev/react';
 import { connect } from 'http2';
+import { GetServerSideProps } from 'next';
+import { sanityClient, urlFor } from '../../sanity';
+import { Collection } from '../../typings';
+import Link from 'next/link';
 
-type Props = {};
+type Props = {
+  collection: Collection;
+};
 
-const NFTDropPage = (props: Props) => {
+const NFTDropPage = ({ collection }: Props) => {
   const connectWithMetamask = useMetamask();
   const connectWithWalletConnect = useWalletConnect();
   const address = useAddress();
@@ -13,8 +19,6 @@ const NFTDropPage = (props: Props) => {
 
   //Tailwind Modal
   const [showModal, setShowModal] = useState(false);
-
-  address && console.log('address', address);
 
   return (
     <div className="flex h-screen flex-col lg:grid lg:grid-cols-10">
@@ -24,13 +28,13 @@ const NFTDropPage = (props: Props) => {
           <div className="bg-gradient-to-br from-yellow-400 to-red-700 p-2 rounded-xl">
             <img
               className="w-44 rounded-xl object-cover lg:h-96 lg:w-72"
-              src="https://picsum.photos/seed/picsum/300/"
+              src={urlFor(collection.previewImage).url() || 'https://via.placeholder.com/150'}
               alt="lorem pixum"
             />
           </div>
           <div className="space-y-2 p-5 text-center">
-            <h1 className="text-4xl font-bold text-white">NFT Drops</h1>
-            <h2 className="text-xl text-gray-300">A Collection of NFTs</h2>
+            <h1 className="text-4xl font-bold text-white">{collection.nftCollectionName}</h1>
+            <h2 className="text-xl text-gray-300">{collection.description}</h2>
           </div>
         </div>
       </div>
@@ -40,7 +44,9 @@ const NFTDropPage = (props: Props) => {
         {/* Header */}
         <header className="flex items-center justify-between">
           <h1 className="w-52 cursor-pointer text-xl font-extralight sm:w-80">
-            Xolmer <span className="font-extrabold text-purple-900"> NFT Drop </span>
+            <Link href="/">
+              Xolmer <span className="font-extrabold text-purple-900"> NFT Drop </span>
+            </Link>
           </h1>
           {address ? (
             <div className="flex items-center space-x-4">
@@ -78,10 +84,10 @@ const NFTDropPage = (props: Props) => {
         <div className="mt-10 flex flex-1 flex-col items-center space-y-6 text-center lg:justify-center lg:space-y-0">
           <img
             className="w-80 object-cover pb-10 object-cover lg:h-40 "
-            src="https://picsum.photos/seed/picsum/300/"
+            src={urlFor(collection.mainImage).url() || 'https://via.placeholder.com/150'}
             alt="lorem pixum"
           />
-          <h1 className="text-3xl font-bold lg:text-5xl lg:font-extrabold">Xolmer NFT Club Drop</h1>
+          <h1 className="text-3xl font-bold lg:text-5xl lg:font-extrabold">{collection.title}</h1>
 
           <p className="pt-2 text-xl text-purple-800">12 / 21 NFT's claimed</p>
         </div>
@@ -215,3 +221,43 @@ const NFTDropPage = (props: Props) => {
 };
 
 export default NFTDropPage;
+
+export const getServerSideProps: GetServerSideProps = async ({ params }) => {
+  const query = `*[_type == "collection" && slug.current == $id][0]{
+    _id,
+    title,
+    address,
+    description,
+    nftCollectionName,
+    mainImage {
+      asset
+    },
+    previewImage {
+      asset
+    },
+    slug {
+      current
+    },
+    creator->{
+      _id,
+      name,
+      address,
+      slug {
+        current
+      },
+    },
+  }`;
+
+  const collection = await sanityClient.fetch(query, { id: params?.id });
+  if (!collection) {
+    return {
+      notFound: true,
+    };
+  }
+
+  return {
+    props: {
+      collection,
+    },
+  };
+};
