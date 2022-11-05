@@ -1,7 +1,12 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
-import { useMetamask, useWalletConnect, useAddress, useDisconnect } from '@thirdweb-dev/react';
-import { connect } from 'http2';
+import {
+  useMetamask,
+  useWalletConnect,
+  useAddress,
+  useDisconnect,
+  useContract,
+} from '@thirdweb-dev/react';
 import { GetServerSideProps } from 'next';
 import { sanityClient, urlFor } from '../../sanity';
 import { Collection } from '../../typings';
@@ -17,8 +22,36 @@ const NFTDropPage = ({ collection }: Props) => {
   const address = useAddress();
   const disconnect = useDisconnect();
 
-  //Tailwind Modal
+  // Get the contract
+  const nftDrop = useContract(collection.address, 'signature-drop').contract;
+
+  //States
   const [showModal, setShowModal] = useState(false);
+  const [claimedSupply, setClaimedSupply] = useState<number>(0);
+  const [unclaimedSupply, setUnclaimedSupply] = useState<number>(0);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [priceInEth, setPriceInEth] = useState<string>();
+
+  const getSupply = async () => {
+    setLoading(true);
+    if (!nftDrop) return;
+    const claimed = await nftDrop.getAllClaimed();
+    const unclaimed = await nftDrop.getAllUnclaimed();
+    setClaimedSupply(claimed.length);
+    setUnclaimedSupply(unclaimed.length);
+    setLoading(false);
+  };
+
+  const fetchPrice = async () => {
+    if (!nftDrop) return;
+    const claimCondition = await nftDrop.claimConditions.getAll();
+    setPriceInEth(claimCondition[0].currencyMetadata.displayValue);
+  };
+
+  useEffect(() => {
+    getSupply();
+    fetchPrice();
+  }, [nftDrop]);
 
   return (
     <div className="flex h-screen flex-col lg:grid lg:grid-cols-10">
@@ -88,12 +121,32 @@ const NFTDropPage = ({ collection }: Props) => {
             alt="lorem pixum"
           />
           <h1 className="text-3xl font-bold lg:text-5xl lg:font-extrabold">{collection.title}</h1>
+          {loading ? (
+            <p className="pt-2 text-xl animate-pulse text-purple-800">Loading...</p>
+          ) : (
+            <p className="pt-2 text-xl text-purple-800">
+              {unclaimedSupply > 0
+                ? `There are ${unclaimedSupply} NFTs left to claim!`
+                : `All NFTs have been claimed!`}{' '}
+            </p>
+          )}
 
-          <p className="pt-2 text-xl text-purple-800">12 / 21 NFT's claimed</p>
+          {loading && (
+            <img className="w-20 object-contain pt-5" src="/assets/Snooker.gif" alt="loading" />
+          )}
         </div>
         {/* Mint Button*/}
-        <button className="mt-10 h-16 w-full bg-gradient-to-tr from-blue-700 to-purple-600 text-white rounded-xl font-bold">
-          Mint NFT (0.05 ETH)
+        <button
+          disabled={loading || unclaimedSupply === 0 || !address}
+          className="mt-10 h-16 w-full bg-purple-800 text-white rounded-xl font-bold disabled:bg-gray-400"
+        >
+          {loading ? (
+            <>Loading...</>
+          ) : unclaimedSupply > 0 ? (
+            <span className="font-bold">Claim NFT for {priceInEth} MATIC</span>
+          ) : (
+            <>All NFTs have been claimed!</>
+          )}
         </button>
       </div>
 
