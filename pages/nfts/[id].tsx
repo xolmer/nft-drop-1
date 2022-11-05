@@ -48,6 +48,32 @@ const NFTDropPage = ({ collection }: Props) => {
     setPriceInEth(claimCondition[0].currencyMetadata.displayValue);
   };
 
+  const mintNft = async () => {
+    if (!nftDrop || !address) return;
+    const quantity = 1;
+
+    setLoading(true);
+
+    nftDrop
+      .claimTo(address, quantity)
+      .then(async (tx) => {
+        const receipt = tx[0].receipt;
+        const claimedTokenId = tx[0].id;
+        const claimedNft = await tx[0].data();
+
+        console.log('receipt', receipt);
+        console.log('claimedTokenId', claimedTokenId);
+        console.log('claimedNft', claimedNft);
+      })
+      .catch((err) => {
+        console.log('err', err);
+      })
+      .finally(() => {
+        getSupply();
+        setLoading(false);
+      });
+  };
+
   useEffect(() => {
     getSupply();
     fetchPrice();
@@ -139,6 +165,7 @@ const NFTDropPage = ({ collection }: Props) => {
         <button
           disabled={loading || unclaimedSupply === 0 || !address}
           className="mt-10 h-16 w-full bg-purple-800 text-white rounded-xl font-bold disabled:bg-gray-400"
+          onClick={mintNft}
         >
           {loading ? (
             <>Loading...</>
