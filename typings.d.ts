@@ -15,6 +15,10 @@ export interface Creator {
   bio: string;
 }
 
+export interface ContractType {
+  type: string;
+}
+
 export interface Collection {
   _id: string;
   title: string;
@@ -27,4 +31,5 @@ export interface Collection {
   creator: Creator;
   mainImage: Image;
   previewImage: Image;
+  contractType: ContractType;
 }

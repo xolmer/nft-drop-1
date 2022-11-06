@@ -23,7 +23,8 @@ const NFTDropPage = ({ collection }: Props) => {
   const disconnect = useDisconnect();
 
   // Get the contract
-  const nftDrop = useContract(collection.address, 'signature-drop').contract;
+  const type = collection.contractType.type === 'nft-drop' ? 'nft-drop' : 'signature-drop';
+  let nftDrop = useContract(collection.address, type).contract;
 
   //States
   const [showModal, setShowModal] = useState(false);
@@ -308,6 +309,9 @@ export const getServerSideProps: GetServerSideProps = async ({ params }) => {
     title,
     address,
     description,
+    contractType->{
+      type,
+    },
     nftCollectionName,
     mainImage {
       asset

@@ -58,5 +58,12 @@ export default {
         hotspot: true,
       },
     },
+    // Drop List
+    {
+      name: 'contractType',
+      title: 'Contract Type',
+      type: 'reference',
+      to: { type: 'contractType' },
+    },
   ],
 };

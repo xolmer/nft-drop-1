@@ -7,6 +7,7 @@ import schemaTypes from 'all:part:@sanity/base/schema-type';
 // We import object and document schemas
 import collection from './collection';
 import creator from './creator';
+import contractType from './contractType';
 
 // Then we give our schema to the builder and provide the result to Sanity
 export default createSchema({
@@ -19,5 +20,6 @@ export default createSchema({
     // in the studio.
     collection,
     creator,
+    contractType,
   ]),
 });
