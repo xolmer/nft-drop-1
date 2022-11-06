@@ -19,7 +19,7 @@ const Home = ({ collections }: Props) => {
         <meta name="author" content="Kaveh Aidivandi" />
       </Head>
       <h1 className="mb-10 text-4xl font-extralight">
-        Xolmer <span className="font-extrabold text-purple-900"> NFT Drop </span>
+        <span className="font-extrabold text-blue-500">NFT Drop </span>
       </h1>
 
       {/* Main Block */}

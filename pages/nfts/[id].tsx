@@ -11,6 +11,7 @@ import { GetServerSideProps } from 'next';
 import { sanityClient, urlFor } from '../../sanity';
 import { Collection } from '../../typings';
 import Link from 'next/link';
+import toast, { Toaster } from 'react-hot-toast';
 
 type Props = {
   collection: Collection;
@@ -54,6 +55,15 @@ const NFTDropPage = ({ collection }: Props) => {
     const quantity = 1;
 
     setLoading(true);
+    const notification = toast.loading('Minting NFT...', {
+      style: {
+        background: 'white',
+        color: 'purple',
+        fontWeight: 'bolder',
+        fontSize: '17px',
+        padding: '20px',
+      },
+    });
 
     nftDrop
       .claimTo(address, quantity)
@@ -62,16 +72,38 @@ const NFTDropPage = ({ collection }: Props) => {
         const claimedTokenId = tx[0].id;
         const claimedNft = await tx[0].data();
 
+        toast('success, NFT Minted!', {
+          duration: 7000,
+          style: {
+            background: 'white',
+            color: 'black',
+            fontWeight: 'bolder',
+            fontSize: '17px',
+            padding: '20px',
+          },
+        });
+
         console.log('receipt', receipt);
         console.log('claimedTokenId', claimedTokenId);
         console.log('claimedNft', claimedNft);
       })
       .catch((err) => {
         console.log('err', err);
+        toast('Error, Something went wrong!', {
+          duration: 7000,
+          style: {
+            background: 'white',
+            color: 'red',
+            fontWeight: 'bolder',
+            fontSize: '17px',
+            padding: '20px',
+          },
+        });
       })
       .finally(() => {
         getSupply();
         setLoading(false);
+        toast.dismiss(notification);
       });
   };
 
@@ -82,6 +114,7 @@ const NFTDropPage = ({ collection }: Props) => {
 
   return (
     <div className="flex h-screen flex-col lg:grid lg:grid-cols-10">
+      <Toaster position="top-left" reverseOrder={false} />
       {/* Left */}
       <div className="lg:col-span-4 bg-gradient-to-br from-red-700 to-purple-600 ">
         <div className="flex flex-col items-center justify-center py-2 lg:min-h-screen">
